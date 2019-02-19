@@ -1,0 +1,8 @@
+# Files and directories with the attribute export-ignore won't be added to archive files
+# (such as zips/tarballs in GitHub Releases)
+/.travis.yml       export-ignore
+/.phan  		   export-ignore
+/.gitattributes    export-ignore
+/.gitignore        export-ignore
+/internal          export-ignore
+/tests             export-ignore

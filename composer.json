@@ -1,0 +1,23 @@
+{
+    "name": "tysonandre/phantypocheck",
+    "description": "A plugin for Phan that checks for typos (using codespell's dictionary).",
+    "keywords": ["phan", "gettext", "phan-plugin", "typo", "codespell"],
+    "type": "project",
+    "license": "GPL-3.0-or-later",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "authors": [
+        {
+            "name": "Tyson Andre"
+        }
+    ],
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "7.0.24"
+        }
+    },
+    "require-dev": {
+        "phan/phan": "dev-master"
+    }
+}

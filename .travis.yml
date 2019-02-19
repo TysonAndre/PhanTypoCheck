@@ -1,0 +1,29 @@
+language: php
+
+php:
+  - 7.0
+  - 7.3
+
+dist: xenial
+
+# reduce this because dictionary.txt can take a while to clone
+# https://docs.travis-ci.com/user/customizing-the-build/#git-clone-depth
+git:
+  depth: 3
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+    - $HOME/.cache/phan-ast/build
+
+install:
+  - ./tests/setup.sh
+  - composer install
+
+script:
+  - vendor/bin/phan --dead-code-detection
+  - tests/test.sh
+
+branches:
+  only:
+  - master
