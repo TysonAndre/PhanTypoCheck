@@ -93,16 +93,14 @@ class TypoCheckPlugin extends PluginV2 implements
             if ($suggestions === null) {
                 continue;
             }
-            $this->emitIssue(
+            self::emitIssueIfNotKnownTypo(
                 $code_base,
                 $context,
                 'PhanPluginPossibleTypoGettext',
                 'Call to {FUNCTION}() was passed an invalid word {STRING_LITERAL} in {STRING_LITERAL}',
                 [$function->getName(), StringUtil::encodeValue($word), StringUtil::encodeValue($pattern)],
-                Issue::SEVERITY_NORMAL,
-                Issue::REMEDIATION_B,
-                Issue::TYPE_ID_UNKNOWN,
-                self::makeSuggestion($suggestions, $word)
+                $word,
+                $suggestions
             );
         }
     }
@@ -223,16 +221,14 @@ class TypoCheckPlugin extends PluginV2 implements
                 }
                 // Edge case in php 7.0: warns if length is 0
                 $lineno = (int)($token[2]) + ($offset > 0 ? substr_count($text, "\n", 0, $offset) : 0);
-                self::emitIssue(
+                self::emitIssueIfNotKnownTypo(
                     $code_base,
                     clone($context)->withLineNumberStart($lineno),
                     self::getIssueName($token),
                     'Saw an invalid word {STRING_LITERAL}',
                     [StringUtil::encodeValue($word)],
-                    Issue::SEVERITY_NORMAL,
-                    Issue::REMEDIATION_B,
-                    Issue::TYPE_ID_UNKNOWN,
-                    self::makeSuggestion($suggestions, $word)
+                    $word,
+                    $suggestions
                 );
             }
         };
@@ -246,7 +242,8 @@ class TypoCheckPlugin extends PluginV2 implements
                 }
                 $did_skip_word_with_apostrophe = false;
                 foreach ($suggestions as $i => $suggestion) {
-                    if (strpos($suggestion, "'") === false) {
+                    if (!preg_match('/[^a-zA-Z0-9_\x7f-\xff]/', $suggestion)) {
+                        // This replacement definitely isn't a valid php token (e.g. has `'` or `-`)
                         continue;
                     }
                     if (count($suggestions) < 2 || $i !== count($suggestions) - 1) {
@@ -262,16 +259,14 @@ class TypoCheckPlugin extends PluginV2 implements
                     $suggestions = array_values($suggestions);
                 }
                 $lineno = (int)($token[2]);
-                self::emitIssue(
+                self::emitIssueIfNotKnownTypo(
                     $code_base,
                     clone($context)->withLineNumberStart($lineno),
                     self::getIssueName($token),
                     'Saw an invalid word {STRING_LITERAL}',
                     [StringUtil::encodeValue($word)],
-                    Issue::SEVERITY_NORMAL,
-                    Issue::REMEDIATION_B,
-                    Issue::TYPE_ID_UNKNOWN,
-                    self::makeSuggestion($suggestions, $word)
+                    $word,
+                    $suggestions
                 );
             }
         };
@@ -308,6 +303,70 @@ class TypoCheckPlugin extends PluginV2 implements
                     break;
             }
         }
+    }
+
+    /**
+     * Emit an issue if there are no configurations suppressing the issue on $word
+     * @param array<int,string> $arguments
+     * @param array<int,string> $suggestions
+     */
+    private static function emitIssueIfNotKnownTypo(
+        CodeBase $code_base,
+        Context $context,
+        string $issue_name,
+        string $issue_template,
+        array $arguments,
+        string $word,
+        array $suggestions
+    ) {
+        if (self::isKnownTypo($word)) {
+            return;
+        }
+        self::emitIssue(
+            $code_base,
+            $context,
+            $issue_name,
+            $issue_template,
+            $arguments,
+            Issue::SEVERITY_NORMAL,
+            Issue::REMEDIATION_B,
+            Issue::TYPE_ID_UNKNOWN,
+            self::makeSuggestion($suggestions, $word)
+        );
+    }
+
+    public static function isKnownTypo(string $word) : bool {
+        $word = strtolower($word);
+        return array_key_exists($word, self::getKnownTypoSet());
+    }
+
+    private static $known_typo_set = null;
+
+    private static function getKnownTypoSet() : array {
+        return self::$known_typo_set ?? self::$known_typo_set = self::computeKnownTypoSet();
+    }
+
+    private static function computeKnownTypoSet() : array {
+        $result = [];
+        $typo_file = Config::getValue('plugin_config')['typo_check_ignore_words_file'] ?? null;
+        if ($typo_file && is_string($typo_file)) {
+            $typo_file = Config::projectPath($typo_file);
+            if (is_file($typo_file)) {
+                foreach (explode("\n", file_get_contents($typo_file) ?: '') as $line) {
+                    $line = trim($line);
+                    if ($line === '') {
+                        continue;
+                    }
+                    if ($line[0] === '#') {
+                        continue;
+                    }
+                    $result[strtolower($line)] = true;
+                }
+            } else {
+                fwrite(STDERR, "typo_check_ignore_words_file '$typo_file' is not a file\n");
+            }
+        }
+        return $result;
     }
 
     /**

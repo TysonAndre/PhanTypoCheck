@@ -4,3 +4,5 @@ const DONT_WARN_ABOUT_THIS = 1;
 echo DONT_WARN_ABOUT_THIS;
 // will warn
 echo 'DONT WARN';
+const IsReenabled = true;
+echo 'set Reenabled to true';

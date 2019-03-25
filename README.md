@@ -47,9 +47,19 @@ The typo checks use [dictionary.txt](https://github.com/codespell-project/codesp
 Options
 -------
 
-`'plugin_config' => ['typo_check_comments_and_strings' => false],` can be added to Phan configuration to make this skip checking comments, strings, and inline HTML for typos.
+Options can be passed in your `.phan/config.php`.
 
-More options will be added in the future.
+```php
+    'plugin_config' => [
+        // can provide a path to a file with a list of typos to not warn about (case insensitive)
+        // See tests/phantypocheck_ignore.txt for an example file.
+        'typo_check_ignore_words_file' => 'phantypocheck_ignore.txt'
+
+        // can be added to Phan configuration to make this skip checking comments, strings, and inline HTML for typos.
+        // (will *only* check uses of gettext()/_()/ngettext())
+        'typo_check_comments_and_strings' => false,
+    ],
+```
 
 License
 -------
