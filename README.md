@@ -33,6 +33,13 @@ After it is installed, add the relative path to `TypoCheckPlugin.php` to the plu
 
 This can also be manually downloaded (the current version doesn't have external dependencies).
 
+Running (standalone)
+--------------------
+
+This can be run as `vendor/bin/phptypocheck path/to/file.php path/to/folder`.
+
+When passed a folder name, this will check for `.php` files within that folder, recursively.
+
 Details
 -------
 

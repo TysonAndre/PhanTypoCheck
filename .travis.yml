@@ -21,7 +21,7 @@ install:
   - composer install
 
 script:
-  - vendor/bin/phan --dead-code-detection
+  - vendor/bin/phan --dead-code-detection -P src/TypoCheckPlugin.php
   - tests/test.sh
 
 branches:
