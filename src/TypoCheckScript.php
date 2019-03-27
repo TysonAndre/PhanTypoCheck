@@ -25,24 +25,48 @@ class TypoCheckScript
     private static function printUsage(string $message = null)
     {
         global $argv;
-        fwrite(STDERR, "Usage: {$argv[0]} file.php folder" . PHP_EOL);
         if ($message) {
-            fwrite(STDERR, $message . PHP_EOL);
+            fwrite(STDERR, $message . "\n\n");
         }
+        $help = <<<EOT
+Usage: {$argv[0]} [--help|-h|help] [--extensions=php,html] path/to/file.php path/to/folder
+
+  -h, --help, help:
+    print this help text
+
+  --extensions=php,html
+    When analyzing folders, check for typos in files with these extensions. Defaults to php.
+    (Must be a single argument with '=')
+
+EOT;
+
+        fwrite(STDERR, $help);
     }
 
     public static function main()
     {
         global $argv;
         if (count($argv) <= 1) {
-            self::printUsage("Error: Expected files or folders to analyze");
+            self::printUsage("Error: Expected 1 or more files or folders to analyze");
             exit(1);
         }
-        unset($argv[0]);
         // TODO: make this configurable
         $file_extensions = ['php'];
         $checked_files = [];
-        foreach ($argv as $file) {
+        $args = array_slice($argv, 1);
+
+        foreach ($args as $i => $opt) {
+            if (in_array($opt, ['-h', '--help', 'help'])) {
+                self::printUsage();
+                exit(0);
+            }
+            if (preg_match('/^--extensions=(.*)$/', $opt, $matches)) {
+                $file_extensions = explode(',', $matches[1]);
+                unset($args[$i]);
+            }
+        }
+
+        foreach ($args as $file) {
             if (!file_exists($file)) {
                 fwrite(STDERR, "Failed to find file/folder '$file'" . PHP_EOL);
                 continue;
