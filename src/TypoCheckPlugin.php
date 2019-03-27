@@ -1,8 +1,10 @@
 <?php declare(strict_types=1);
 
+namespace PhanTypoCheck;
+
 use ast\Node;
+use Closure;
 use Phan\AST\ContextNode;
-use Phan\AST\TolerantASTConverter\InvalidNodeException;
 use Phan\CodeBase;
 use Phan\Config;
 use Phan\Issue;
@@ -13,6 +15,22 @@ use Phan\PluginV2;
 use Phan\PluginV2\AfterAnalyzeFileCapability;
 use Phan\PluginV2\AnalyzeFunctionCallCapability;
 use Phan\Suggestion;
+use function array_key_exists;
+use function count;
+use function explode;
+use function extension_loaded;
+use function file_get_contents;
+use function fwrite;
+use function is_array;
+use function is_file;
+use function is_string;
+use function json_encode;
+use function preg_match_all;
+use function strtolower;
+use function trim;
+use const STDERR;
+
+require_once __DIR__ . '/TypoCheckUtils.php';
 
 /**
  * This plugin checks for typos in code, and is aware of php string escaping rules.
@@ -42,51 +60,22 @@ class TypoCheckPlugin extends PluginV2 implements
     AfterAnalyzeFileCapability,
     AnalyzeFunctionCallCapability
 {
-
-    /** @var ?array<string,array<int,string>> */
-    private static $dictionary = null;
-
     /** @var bool */
-    private $check_comments;
+    private $check_tokens;
 
     public function __construct()
     {
-        $this->check_comments = Config::getValue('plugin_config')['typo_check_comments_and_strings'] ?? true;
+        $this->check_tokens = Config::getValue('plugin_config')['typo_check_comments_and_strings'] ?? true;
         if (extension_loaded('pcntl') && self::isRunningInBackground()) {
             // load dictionary before forking processes instead of repeatedly reloading it.
-            self::getDictionary();
+            TypoCheckUtils::getDictionary();
         }
-    }
-
-    public static function getDictionary()
-    {
-        return self::$dictionary ?? (self::$dictionary = self::loadDictionary());
-    }
-
-    private static function loadDictionary() : array
-    {
-        $file = dirname(__DIR__) . '/data/dictionary.txt';
-        $contents = file_get_contents($file);
-        if (!$contents) {
-            throw new RuntimeException("failed to load $file");
-        }
-        $result = [];
-        foreach (explode("\n", $contents) as $line) {
-            $line = trim($line);
-            if (stripos($line, '->') === false) {
-                continue;
-            }
-            list($typo, $corrections_string) = explode('->', $line, 2);
-            $corrections = explode(',', $corrections_string);
-            $result[$typo] = $corrections;
-        }
-        return $result;
     }
 
     /** @return void */
     private function analyzeText(CodeBase $code_base, Context $context, Func $function, string $pattern)
     {
-        $dictionary = self::getDictionary();
+        $dictionary = TypoCheckUtils::getDictionary();
         preg_match_all('/\w{3,}(?:\'\w+)?/', $pattern, $matches);
         foreach ($matches[0] as $word) {
             $suggestions = $dictionary[strtolower($word)] ?? null;
@@ -98,7 +87,7 @@ class TypoCheckPlugin extends PluginV2 implements
                 $context,
                 'PhanPluginPossibleTypoGettext',
                 'Call to {FUNCTION}() was passed an invalid word {STRING_LITERAL} in {STRING_LITERAL}',
-                [$function->getName(), StringUtil::encodeValue($word), StringUtil::encodeValue($pattern)],
+                [$function->getName(), json_encode($word), StringUtil::encodeValue($pattern)],
                 $word,
                 $suggestions
             );
@@ -107,27 +96,7 @@ class TypoCheckPlugin extends PluginV2 implements
 
     private static function makeSuggestion(array $suggestions, string $original_word) : Suggestion
     {
-        $suggestions = array_map('trim', $suggestions);
-
-        if (count($suggestions) > 1) {
-            // empty string for no reason
-            $reason = array_pop($suggestions);
-        } else {
-            $reason = null;
-        }
-        if (preg_match('/[a-z]/', $original_word, $matches, PREG_OFFSET_CAPTURE)) {
-            if ($matches[0][1] > 0) {
-                // The first character of the original word is uppercase
-                $suggestions = array_map('ucfirst', $suggestions);
-            }
-        } else {
-            // The word is uppercase
-            $suggestions = array_map('strtoupper', $suggestions);
-        }
-        $suggestion = 'Did you mean ' . implode(' or ', array_map([StringUtil::class, 'encodeValue'], $suggestions)) . '?';
-        if ($reason) {
-            $suggestion .= " : not always fixable: $reason";
-        }
+        $suggestion = TypoCheckUtils::makeSuggestionText($suggestions, $original_word);
         return Suggestion::fromString($suggestion);
     }
 
@@ -186,13 +155,13 @@ class TypoCheckPlugin extends PluginV2 implements
     }
 
     const TOKEN_ISSUE_MAP = [
-        T_ENCAPSED_AND_WHITESPACE   => 'PhanPluginPossibleTypoStringLiteral',
-        T_CONSTANT_ENCAPSED_STRING  => 'PhanPluginPossibleTypoStringLiteral',
-        T_VARIABLE                  => 'PhanPluginPossibleTypoVariable',
-        T_INLINE_HTML               => 'PhanPluginPossibleTypoInlineHTML',
-        T_COMMENT                   => 'PhanPluginPossibleTypoComment',
-        T_DOC_COMMENT               => 'PhanPluginPossibleTypoComment',
-        T_STRING                    => 'PhanPluginPossibleTypoToken',
+        \T_ENCAPSED_AND_WHITESPACE   => 'PhanPluginPossibleTypoStringLiteral',
+        \T_CONSTANT_ENCAPSED_STRING  => 'PhanPluginPossibleTypoStringLiteral',
+        \T_VARIABLE                  => 'PhanPluginPossibleTypoVariable',
+        \T_INLINE_HTML               => 'PhanPluginPossibleTypoInlineHTML',
+        \T_COMMENT                   => 'PhanPluginPossibleTypoComment',
+        \T_DOC_COMMENT               => 'PhanPluginPossibleTypoComment',
+        \T_STRING                    => 'PhanPluginPossibleTypoToken',
     ];
 
     private static function getIssueName(array $token)
@@ -206,102 +175,19 @@ class TypoCheckPlugin extends PluginV2 implements
         string $file_contents,
         Node $unused_node
     ) {
-        if (!$this->check_comments) {
+        if (!$this->check_tokens) {
             return;
         }
-        $dictionary = self::getDictionary();
-
-        $analyze_text = static function (string $text, array $token) use ($code_base, $context, $dictionary) {
-            preg_match_all('/[a-z0-9]{3,}(?:\'[a-z]+)?/i', $text, $matches, PREG_OFFSET_CAPTURE);
-            foreach ($matches[0] as $match) {
-                list($word, $offset) = $match;
-                $suggestions = $dictionary[strtolower($word)] ?? null;
-                if ($suggestions === null) {
-                    continue;
-                }
-                // Edge case in php 7.0: warns if length is 0
-                $lineno = (int)($token[2]) + ($offset > 0 ? substr_count($text, "\n", 0, $offset) : 0);
-                self::emitIssueIfNotKnownTypo(
-                    $code_base,
-                    clone($context)->withLineNumberStart($lineno),
-                    self::getIssueName($token),
-                    'Saw an invalid word {STRING_LITERAL}',
-                    [StringUtil::encodeValue($word)],
-                    $word,
-                    $suggestions
-                );
-            }
-        };
-        $analyze_identifier = static function (string $text, array $token) use ($code_base, $context, $dictionary) {
-            // Try to extract everything from identifiers that are CamelCase, camelCase, or camelACRONYMCase.
-            preg_match_all('/[a-z]+|[A-Z](?:[a-z]+|[A-Z]+(?![a-z]))/', $text, $matches);
-            foreach ($matches[0] as $word) {
-                $suggestions = $dictionary[strtolower($word)] ?? null;
-                if ($suggestions === null) {
-                    continue;
-                }
-                $did_skip_word_with_apostrophe = false;
-                foreach ($suggestions as $i => $suggestion) {
-                    if (!preg_match('/[^a-zA-Z0-9_\x7f-\xff]/', $suggestion)) {
-                        // This replacement definitely isn't a valid php token (e.g. has `'` or `-`)
-                        continue;
-                    }
-                    if (count($suggestions) < 2 || $i !== count($suggestions) - 1) {
-                        $did_skip_word_with_apostrophe = true;
-                        unset($suggestions[$i]);
-                    }
-                }
-                if ($did_skip_word_with_apostrophe) {
-                    if (count($suggestions) <= 1) {
-                        // the last value is always the empty string or a reason to consider not fixing it
-                        continue;
-                    }
-                    $suggestions = array_values($suggestions);
-                }
-                $lineno = (int)($token[2]);
-                self::emitIssueIfNotKnownTypo(
-                    $code_base,
-                    clone($context)->withLineNumberStart($lineno),
-                    self::getIssueName($token),
-                    'Saw an invalid word {STRING_LITERAL}',
-                    [StringUtil::encodeValue($word)],
-                    $word,
-                    $suggestions
-                );
-            }
-        };
-        foreach (@token_get_all($file_contents) as $token) {
-            if (!is_array($token)) {
-                continue;
-            }
-            switch ($token[0]) {
-                case T_ENCAPSED_AND_WHITESPACE:
-                    try {
-                        // @phan-suppress-next-line PhanAccessMethodInternal
-                        $text = \Phan\AST\TolerantASTConverter\StringUtil::parseEscapeSequences($token[1], '"');
-                    } catch (InvalidNodeException $_) {
-                        break;
-                    }
-                    $analyze_text($text, $token);
-                    // decode
-                    break;
-                case T_CONSTANT_ENCAPSED_STRING:
-                    // @phan-suppress-next-line PhanAccessMethodInternal
-                    $text = \Phan\AST\TolerantASTConverter\StringUtil::parse($token[1]);
-                    $analyze_text($text, $token);
-                    break;
-                case T_VARIABLE:
-                    $analyze_identifier((string)substr($token[1], 1), $token);
-                    break;
-                case T_STRING:
-                    $analyze_identifier($token[1], $token);
-                    break;
-                case T_COMMENT:
-                case T_DOC_COMMENT:
-                case T_INLINE_HTML:
-                    $analyze_text($token[1], $token);
-                    break;
-            }
+        foreach (TypoCheckUtils::getTyposForText($file_contents) as $typo) {
+            self::emitIssueIfNotKnownTypo(
+                $code_base,
+                clone($context)->withLineNumberStart($typo->lineno),
+                self::getIssueName($typo->token),
+                'Saw an invalid word {STRING_LITERAL}',
+                [json_encode($typo->word)],
+                $typo->word,
+                $typo->suggestions
+            );
         }
     }
 
@@ -335,18 +221,21 @@ class TypoCheckPlugin extends PluginV2 implements
         );
     }
 
-    public static function isKnownTypo(string $word) : bool {
+    public static function isKnownTypo(string $word) : bool
+    {
         $word = strtolower($word);
         return array_key_exists($word, self::getKnownTypoSet());
     }
 
     private static $known_typo_set = null;
 
-    private static function getKnownTypoSet() : array {
+    private static function getKnownTypoSet() : array
+    {
         return self::$known_typo_set ?? self::$known_typo_set = self::computeKnownTypoSet();
     }
 
-    private static function computeKnownTypoSet() : array {
+    private static function computeKnownTypoSet() : array
+    {
         $result = [];
         $typo_file = Config::getValue('plugin_config')['typo_check_ignore_words_file'] ?? null;
         if ($typo_file && is_string($typo_file)) {

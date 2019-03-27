@@ -76,14 +76,7 @@ return [
     'check_docblock_signature_param_type_match' => true,
     'prefer_narrowed_phpdoc_param_type' => true,
 
-    // Set to true in order to attempt to detect dead
-    // (unreferenced) code. Keep in mind that the
-    // results will only be a guess given that classes,
-    // properties, constants and methods can be referenced
-    // as variables (like `$class->$property` or
-    // `$class->$method()`) in ways that we're unable
-    // to make sense of.
-    'dead_code_detection' => true,
+    'unused_variable_detection' => true,
 
     // Run a quick version of checks that takes less
     // time
@@ -92,15 +85,6 @@ return [
     // Enable or disable support for generic templated
     // class types.
     'generic_types_enabled' => true,
-
-    // By default, Phan will not analyze all node types
-    // in order to save time. If this config is set to true,
-    // Phan will dig deeper into the AST tree and do an
-    // analysis on all nodes, possibly finding more issues.
-    //
-    // See \Phan\Analysis::shouldVisit for the set of skipped
-    // nodes.
-    'should_visit_all_nodes' => true,
 
     // The minimum severity level to report on. This can be
     // set to Issue::SEVERITY_LOW, Issue::SEVERITY_NORMAL or
@@ -122,6 +106,9 @@ return [
         'src',
         '.phan',
         'vendor/phan/phan/src',
+    ],
+    'file_list' => [
+        'phptypocheck',
     ],
 
     // List of case-insensitive file extensions supported by Phan.
@@ -153,7 +140,7 @@ return [
         'PregRegexCheckerPlugin',
         'PrintfCheckerPlugin',
         'PhanSelfCheckPlugin',
-        'src/TypoCheckPlugin.php',
+        // 'src/TypoCheckPlugin.php',  // disabled to avoid issues in language server mode
     ],
 
 ];

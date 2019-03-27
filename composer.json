@@ -19,5 +19,6 @@
     },
     "require-dev": {
         "phan/phan": "dev-master"
-    }
+    },
+    "bin": ["phptypocheck"]
 }
