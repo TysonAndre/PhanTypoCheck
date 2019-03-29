@@ -1,7 +1,9 @@
 <?php
-// TODO: Do a better job inferring the line numbers here
+// PhanTypoCheck does not count newlines when they're escaped
 echo gettext("\n\n\ninvlaid text");
 
+echo gettext("\n\x0a\12INVLAID text
+    Invlaid");
 
 
 echo gettext("

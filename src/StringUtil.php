@@ -172,6 +172,100 @@ final class StringUtil
         );
     }
 
+    public static function parseWithNewlinePlaceholder($str)
+    {
+        $c = $str[0];
+        if ($c === '<') {
+            return self::parseHeredocWithNewlinePlaceholder($str);
+        }
+        $binary_length = 0;
+        if ('b' === $c || 'B' === $c) {
+            $binary_length = 1;
+        }
+
+        if ('\'' === $str[$binary_length]) {
+            // Can't have escaped newlines
+            return self::parse($str);
+        } else {
+            return self::parseEscapeSequencesWithNewlinePlaceholder(
+                // @phan-suppress-next-line PhanPossiblyFalseTypeArgument
+                substr($str, $binary_length + 1, -1),
+                '"'
+            );
+        }
+    }
+
+    /**
+     * Converts a fragment of raw (possibly indented)
+     * heredoc to the string that the PHP interpreter would treat it as.
+     * (but convert escaped newlines to a character that isn't a literal newline)
+     */
+    public static function parseHeredocWithNewlinePlaceholder(string $str) : string
+    {
+        // TODO: handle dos newlines
+        // TODO: Parse escape sequences
+        $first_line_index = (int)strpos($str, "\n");
+        $last_line_index = (int)strrpos($str, "\n");
+        // $last_line = substr($str, $last_line_index + 1);
+        $spaces = strspn($str, " \t", $last_line_index + 1);
+
+        // On Windows, the "\r" must also be removed from the last line of the heredoc
+        $inner = (string)substr($str, $first_line_index + 1, $last_line_index - ($first_line_index + 1) - ($str[$last_line_index - 1] === "\r" ? 1 : 0));
+
+        if ($spaces > 0) {
+            $inner = preg_replace("/^" . substr($str, $last_line_index + 1, $spaces) . "/m", '', $inner);
+        }
+        if (strpos(substr($str, 0, $first_line_index), "'") === false) {
+            // If the start of the here/nowdoc doesn't contain a "'", it's heredoc.
+            // The contents have to be unescaped.
+            return self::parseEscapeSequencesWithNewlinePlaceholder($inner, null);
+        }
+        return $inner;
+    }
+
+    /**
+     * Parses escape sequences in strings (all string types apart from single quoted),
+     * but replaces escaped newlines with a different single-byte character, to use for line counting.
+     *
+     * @param string $str
+     * @param ?string $quote
+     */
+    private static function parseEscapeSequencesWithNewlinePlaceholder($str, $quote)
+    {
+        if (!is_string($str)) {
+            // Invalid AST input; give up
+            return '';
+        }
+        if (null !== $quote) {
+            $str = str_replace('\\' . $quote, $quote, $str);
+        }
+
+        return \preg_replace_callback(
+            '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\})~',
+            /**
+             * @param array<int,string> $matches
+             * @return string
+             */
+            static function ($matches) {
+                $str = $matches[1];
+
+                if (isset(self::REPLACEMENTS[$str])) {
+                    $result = self::REPLACEMENTS[$str];
+                } elseif ('x' === $str[0] || 'X' === $str[0]) {
+                    // @phan-suppress-next-line PhanPartialTypeMismatchArgumentInternal
+                    $result = chr(hexdec($str));
+                } elseif ('u' === $str[0]) {
+                    // @phan-suppress-next-line PhanPartialTypeMismatchArgument
+                    $result = self::codePointToUtf8(hexdec($matches[2]));
+                } else {
+                    $result = chr(octdec($str));
+                }
+                return $result !== "\n" ? $result : " ";
+            },
+            $str
+        );
+    }
+
     /**
      * Converts a Unicode code point to its UTF-8 encoded representation.
      *
