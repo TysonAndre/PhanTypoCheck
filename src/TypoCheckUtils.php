@@ -92,8 +92,17 @@ class TypoCheckUtils
                 if ($suggestions === null) {
                     continue;
                 }
+                if (!isset($line_counting_text)) {
+                    if (\in_array($token[0], [\T_CONSTANT_ENCAPSED_STRING, \T_ENCAPSED_AND_WHITESPACE])) {
+                        // Parse this, but replace `"\n"`, `"\x0a"`, etc. with a single byte character that isn't a literal newline.
+                        $line_counting_text = StringUtil::parseWithNewlinePlaceholder($token[1]);
+                    } else {
+                        // There are no escape sequences
+                        $line_counting_text = $text;
+                    }
+                }
                 // Edge case in php 7.0: warns if length is 0
-                $lineno = (int)($token[2]) + ($offset > 0 ? substr_count($text, "\n", 0, $offset) : 0);
+                $lineno = (int)($token[2]) + ($offset > 0 ? substr_count($line_counting_text, "\n", 0, $offset) : 0);
                 $results[] = new TypoDetails($word, $token, $lineno, $suggestions);
             }
         };
