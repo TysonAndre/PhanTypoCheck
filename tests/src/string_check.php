@@ -8,3 +8,4 @@ function inalidName($varible) {
 inalidName(2);
 class InalidClassName {
 }
+// A comment mentioning inalidName

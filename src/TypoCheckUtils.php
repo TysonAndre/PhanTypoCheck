@@ -90,6 +90,22 @@ class TypoCheckUtils
                 list($word, $offset) = $match;
                 $suggestions = $dictionary[strtolower($word)] ?? null;
                 if ($suggestions === null) {
+                    // Analyze anything resembling camelCase, CamelCase, or snake_case
+                    if (preg_match('/(?:[a-z].*[A-Z]|_)/', $word)) {
+                        preg_match_all('/[a-z]+|[A-Z](?:[a-z]+|[A-Z]+(?![a-z]))/', $word, $matches);
+                        if (count($matches[0]) >= 2) {
+                            foreach ($matches[0] as $inner_word) {
+                                $suggestions = $dictionary[strtolower($inner_word)] ?? null;
+                                if ($suggestions === null) {
+                                    continue;
+                                }
+                                $details = self::makeTypoDetails($inner_word, $token, $suggestions, (int)($token[2]));
+                                if ($details) {
+                                    $results[] = $details;
+                                }
+                            }
+                        }
+                    }
                     continue;
                 }
                 if (!isset($line_counting_text)) {
@@ -114,26 +130,10 @@ class TypoCheckUtils
                 if ($suggestions === null) {
                     continue;
                 }
-                $did_skip_word_with_apostrophe = false;
-                foreach ($suggestions as $i => $suggestion) {
-                    if (!preg_match('/[^a-zA-Z0-9_\x7f-\xff]/', $suggestion)) {
-                        // This replacement definitely isn't a valid php token (e.g. has `'` or `-`)
-                        continue;
-                    }
-                    if (count($suggestions) < 2 || $i !== count($suggestions) - 1) {
-                        $did_skip_word_with_apostrophe = true;
-                        unset($suggestions[$i]);
-                    }
+                $details = self::makeTypoDetails($word, $token, $suggestions, (int)($token[2]));
+                if ($details) {
+                    $results[] = $details;
                 }
-                if ($did_skip_word_with_apostrophe) {
-                    if (count($suggestions) <= 1) {
-                        // the last value is always the empty string or a reason to consider not fixing it
-                        continue;
-                    }
-                    $suggestions = array_values($suggestions);
-                }
-                $lineno = (int)($token[2]);
-                $results[] = new TypoDetails($word, $token, $lineno, $suggestions);
             }
         };
         foreach (@token_get_all($contents) as $token) {
@@ -168,6 +168,35 @@ class TypoCheckUtils
             }
         }
         return $results;
+    }
+
+    /**
+     * @param array{0:int,1:string,2:int} $token
+     * @param array<int,string> $suggestions
+     * @return ?TypoDetails
+     */
+    private static function makeTypoDetails(string $word, array $token, array $suggestions, int $lineno) {
+        $did_skip_word_with_apostrophe = false;
+        foreach ($suggestions as $i => $suggestion) {
+            if (!preg_match('/[^a-zA-Z0-9_\x7f-\xff]/', $suggestion)) {
+                continue;
+            }
+            // This has characters that don't belong in a valid php token (e.g. has `'` or `-`)
+
+            if (count($suggestions) < 2 || $i !== count($suggestions) - 1) {
+                // And this is not the last commas separated value
+                $did_skip_word_with_apostrophe = true;
+                unset($suggestions[$i]);
+            }
+        }
+        if ($did_skip_word_with_apostrophe) {
+            if (count($suggestions) <= 1) {
+                // the last value is always the empty string or a reason to consider not fixing it
+                return null;
+            }
+            $suggestions = array_values($suggestions);
+        }
+        return new TypoDetails($word, $token, $lineno, $suggestions);
     }
 
     public static function makeSuggestionText(array $suggestions, string $original_word) : string
