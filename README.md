@@ -13,6 +13,8 @@ It also checks variables, element names, and element usages (using heuristics to
 
 This also emits warnings if strings with typos are passed to calls to `gettext()`, `_()`, and `ngettext()`.
 
+This branch supports Phan v2.
+
 Installing
 ----------
 
