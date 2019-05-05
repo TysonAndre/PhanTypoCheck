@@ -22,7 +22,7 @@ use const STDERR;
  */
 class TypoCheckScript
 {
-    private static function printUsage(string $message = null)
+    private static function printUsage(string $message = null) : void
     {
         global $argv;
         if ($message) {
@@ -79,7 +79,7 @@ EOT;
         }
     }
 
-    private static function checkFolderRecursively(string $directory_name, array $file_extensions, array &$checked_files)
+    private static function checkFolderRecursively(string $directory_name, array $file_extensions, array &$checked_files) : void
     {
         try {
             $iterator = new \CallbackFilterIterator(
@@ -139,7 +139,7 @@ EOT;
         \T_STRING                    => 'a token',
     ];
 
-    private static function checkFile(string $file, array &$checked_files)
+    private static function checkFile(string $file, array &$checked_files) : void
     {
         if (isset($checked_files[$file])) {
             return;

@@ -72,8 +72,7 @@ class TypoCheckPlugin extends PluginV3 implements
         }
     }
 
-    /** @return void */
-    private function analyzeText(CodeBase $code_base, Context $context, Func $function, string $pattern)
+    private function analyzeText(CodeBase $code_base, Context $context, Func $function, string $pattern) : void
     {
         $dictionary = TypoCheckUtils::getDictionary();
         preg_match_all('/\w{3,}(?:\'\w+)?/', $pattern, $matches);

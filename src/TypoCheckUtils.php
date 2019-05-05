@@ -84,7 +84,7 @@ class TypoCheckUtils
         $dictionary = self::getDictionary();
         $results = [];
 
-        $analyze_text = static function (string $text, array $token) use ($dictionary, &$results) {
+        $analyze_text = static function (string $text, array $token) use ($dictionary, &$results) : void {
             preg_match_all('/[a-z0-9]{3,}(?:\'[a-z]+)?/i', $text, $matches, PREG_OFFSET_CAPTURE);
             foreach ($matches[0] as $match) {
                 list($word, $offset) = $match;
@@ -122,7 +122,7 @@ class TypoCheckUtils
                 $results[] = new TypoDetails($word, $token, $lineno, $suggestions);
             }
         };
-        $analyze_identifier = static function (string $text, array $token) use ($dictionary, &$results) {
+        $analyze_identifier = static function (string $text, array $token) use ($dictionary, &$results) : void {
             // Try to extract everything from identifiers that are CamelCase, camelCase, or camelACRONYMCase.
             preg_match_all('/[a-z]+|[A-Z](?:[a-z]+|[A-Z]+(?![a-z]))/', $text, $matches);
             foreach ($matches[0] as $word) {
@@ -173,9 +173,8 @@ class TypoCheckUtils
     /**
      * @param array{0:int,1:string,2:int} $token
      * @param array<int,string> $suggestions
-     * @return ?TypoDetails
      */
-    private static function makeTypoDetails(string $word, array $token, array $suggestions, int $lineno) {
+    private static function makeTypoDetails(string $word, array $token, array $suggestions, int $lineno) : ?TypoDetails {
         $did_skip_word_with_apostrophe = false;
         foreach ($suggestions as $i => $suggestion) {
             if (!preg_match('/[^a-zA-Z0-9_\x7f-\xff]/', $suggestion)) {

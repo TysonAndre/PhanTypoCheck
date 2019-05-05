@@ -141,6 +141,8 @@ return [
         'PrintfCheckerPlugin',
         'PhanSelfCheckPlugin',
         // 'src/TypoCheckPlugin.php',  // disabled to avoid issues in language server mode
+        'PHPDocRedundantPlugin',
+        'PHPDocToRealTypesPlugin',
     ],
 
 ];
