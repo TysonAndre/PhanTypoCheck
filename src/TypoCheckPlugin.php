@@ -11,9 +11,9 @@ use Phan\Issue;
 use Phan\Language\Context;
 use Phan\Language\Element\Func;
 use Phan\Library\StringUtil;
-use Phan\PluginV2;
-use Phan\PluginV2\AfterAnalyzeFileCapability;
-use Phan\PluginV2\AnalyzeFunctionCallCapability;
+use Phan\PluginV3;
+use Phan\PluginV3\AfterAnalyzeFileCapability;
+use Phan\PluginV3\AnalyzeFunctionCallCapability;
 use Phan\Suggestion;
 use function array_key_exists;
 use function count;
@@ -56,7 +56,7 @@ require_once __DIR__ . '/TypoCheckUtils.php';
  * You should have received a copy of the GNU General Public License
  * along with PhanTypoCheck.  If not, see <https://www.gnu.org/licenses/>.
  */
-class TypoCheckPlugin extends PluginV2 implements
+class TypoCheckPlugin extends PluginV3 implements
     AfterAnalyzeFileCapability,
     AnalyzeFunctionCallCapability
 {
@@ -164,7 +164,7 @@ class TypoCheckPlugin extends PluginV2 implements
         \T_STRING                    => 'PhanPluginPossibleTypoToken',
     ];
 
-    private static function getIssueName(array $token)
+    private static function getIssueName(array $token) : string
     {
         return self::TOKEN_ISSUE_MAP[$token[0]] ?? 'PhanPluginPossibleTypoUnknown';
     }
@@ -174,7 +174,7 @@ class TypoCheckPlugin extends PluginV2 implements
         Context $context,
         string $file_contents,
         Node $unused_node
-    ) {
+    ) : void {
         if (!$this->check_tokens) {
             return;
         }
