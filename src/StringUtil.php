@@ -165,6 +165,7 @@ final class StringUtil
                     // @phan-suppress-next-line PhanPartialTypeMismatchArgument
                     return self::codePointToUtf8(hexdec($matches[2]));
                 } else {
+                    // @phan-suppress-next-line PhanPartialTypeMismatchArgumentInternal
                     return chr(octdec($str));
                 }
             },
@@ -258,6 +259,7 @@ final class StringUtil
                     // @phan-suppress-next-line PhanPartialTypeMismatchArgument
                     $result = self::codePointToUtf8(hexdec($matches[2]));
                 } else {
+                    // @phan-suppress-next-line PhanPartialTypeMismatchArgumentInternal
                     $result = chr(octdec($str));
                 }
                 return $result !== "\n" ? $result : " ";
