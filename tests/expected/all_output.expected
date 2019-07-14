@@ -8,6 +8,8 @@ src/comment.php:8 PhanPluginPossibleTypoStringLiteral Saw an invalid word "sring
 src/comment.php:9 PhanPluginPossibleTypoStringLiteral Saw an invalid word "was'nt" (Did you mean "wasn't"?)
 src/comments.php:3 PhanPluginPossibleTypoComment Saw an invalid word "iff" (Did you mean "if"? : not always fixable: disabled due to valid mathematical concept)
 src/comments.php:5 PhanPluginPossibleTypoToken Saw an invalid word "iff" (Did you mean "if"? : not always fixable: disabled due to valid mathematical concept)
+src/html.php:3 PhanPluginPossibleTypoInlineHTML Saw an invalid word "Acutally" (Did you mean "Actually"?)
+src/html.php:7 PhanPluginPossibleTypoStringLiteral Saw an invalid word "Acutally" (Did you mean "Actually"?)
 src/ignored.php:6 PhanPluginPossibleTypoStringLiteral Saw an invalid word "optin" (Did you mean "option"?)
 src/invalid_constant_suggestion.php:6 PhanPluginPossibleTypoStringLiteral Saw an invalid word "DONT" (Did you mean "DON'T"?)
 src/invalid_constant_suggestion.php:8 PhanPluginPossibleTypoStringLiteral Saw an invalid word "Reenabled" (Did you mean "Re-enabled"?)

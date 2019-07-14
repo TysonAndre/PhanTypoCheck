@@ -85,6 +85,22 @@ class TypoCheckUtils
         $results = [];
 
         $analyze_text = static function (string $text, array $token) use ($dictionary, &$results) {
+            // @phan-suppress-next-line PhanUnusedVariableReference the reference is used to preserve state
+            $count_lines_before = static function (int $offset) use(&$line_counting_text, $text, $token) : int {
+                if ($offset <= 0) {
+                    return 0;
+                }
+                if (!isset($line_counting_text)) {
+                    if (\in_array($token[0], [\T_CONSTANT_ENCAPSED_STRING, \T_ENCAPSED_AND_WHITESPACE])) {
+                        // Parse this, but replace `"\n"`, `"\x0a"`, etc. with a single byte character that isn't a literal newline.
+                        $line_counting_text = StringUtil::parseWithNewlinePlaceholder($token[1]);
+                    } else {
+                        // There are no escape sequences
+                        $line_counting_text = $text;
+                    }
+                }
+                return substr_count($line_counting_text, "\n", 0, $offset);
+            };
             preg_match_all('/[a-z0-9]{3,}(?:\'[a-z]+)?/i', $text, $matches, PREG_OFFSET_CAPTURE);
             foreach ($matches[0] as $match) {
                 list($word, $offset) = $match;
@@ -99,7 +115,8 @@ class TypoCheckUtils
                                 if ($suggestions === null) {
                                     continue;
                                 }
-                                $details = self::makeTypoDetails($inner_word, $token, $suggestions, (int)($token[2]));
+                                $lineno = (int)($token[2]) + $count_lines_before($offset);
+                                $details = self::makeTypoDetails($inner_word, $token, $suggestions, $lineno);
                                 if ($details) {
                                     $results[] = $details;
                                 }
@@ -108,17 +125,8 @@ class TypoCheckUtils
                     }
                     continue;
                 }
-                if (!isset($line_counting_text)) {
-                    if (\in_array($token[0], [\T_CONSTANT_ENCAPSED_STRING, \T_ENCAPSED_AND_WHITESPACE])) {
-                        // Parse this, but replace `"\n"`, `"\x0a"`, etc. with a single byte character that isn't a literal newline.
-                        $line_counting_text = StringUtil::parseWithNewlinePlaceholder($token[1]);
-                    } else {
-                        // There are no escape sequences
-                        $line_counting_text = $text;
-                    }
-                }
                 // Edge case in php 7.0: warns if length is 0
-                $lineno = (int)($token[2]) + ($offset > 0 ? substr_count($line_counting_text, "\n", 0, $offset) : 0);
+                $lineno = (int)($token[2]) + $count_lines_before($offset);
                 $results[] = new TypoDetails($word, $token, $lineno, $suggestions);
             }
         };
