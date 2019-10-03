@@ -32,11 +32,15 @@ class TypoCheckScript
 Usage: {$argv[0]} [--help|-h|help] [--extensions=php,html] path/to/file.php path/to/folder
 
   -h, --help, help:
-    print this help text
+    Print this help text
+
+  -p, --plaintext
+    Parse the files as plaintext instead of as PHP.
 
   --extensions=php,html
     When analyzing folders, check for typos in files with these extensions. Defaults to php.
     (Must be a single argument with '=')
+    If the value is the empty string, then analyze all extensions.
 
 EOT;
 
@@ -54,15 +58,26 @@ EOT;
         $file_extensions = ['php'];
         $checked_files = [];
         $args = array_slice($argv, 1);
+        $plaintext = false;
 
         foreach ($args as $i => $opt) {
             if (in_array($opt, ['-h', '--help', 'help'])) {
                 self::printUsage();
                 exit(0);
             }
-            if (preg_match('/^--extensions=(.*)$/', $opt, $matches)) {
-                $file_extensions = explode(',', $matches[1]);
+            if (($opt[0] ?? '') !== '-') {
+                continue;
+            }
+            if (in_array($opt, ['-p', '--plaintext'])) {
+                $plaintext = true;
                 unset($args[$i]);
+                continue;
+            }
+            if (preg_match('/^--extensions=(.*)$/', $opt, $matches)) {
+                $file_extensions_string = $matches[1];
+                $file_extensions = $file_extensions_string !== '' ? explode(',', $file_extensions_string) : [];
+                unset($args[$i]);
+                continue;
             }
         }
 
@@ -71,15 +86,16 @@ EOT;
                 fwrite(STDERR, "Failed to find file/folder '$file'" . PHP_EOL);
                 continue;
             }
+            echo "Checking $file " . json_encode($file_extensions) . "\n";
             if (is_file($file)) {
-                self::checkFile($file, $checked_files);
+                self::checkFile($file, $plaintext, $checked_files);
             } elseif (is_dir($file)) {
-                self::checkFolderRecursively($file, $file_extensions, $checked_files);
+                self::checkFolderRecursively($file, $file_extensions, $plaintext, $checked_files);
             }
         }
     }
 
-    private static function checkFolderRecursively(string $directory_name, array $file_extensions, array &$checked_files)
+    private static function checkFolderRecursively(string $directory_name, array $file_extensions, bool $plaintext, array &$checked_files)
     {
         try {
             $iterator = new \CallbackFilterIterator(
@@ -90,13 +106,15 @@ EOT;
                     )
                 ),
                 static function (\SplFileInfo $file_info) use ($file_extensions) : bool {
-                    if (!in_array($file_info->getExtension(), $file_extensions, true)) {
+                    if ($file_extensions && !in_array($file_info->getExtension(), $file_extensions, true)) {
                         return false;
                     }
 
                     if (!$file_info->isFile() || !$file_info->isReadable()) {
-                        $file_path = $file_info->getRealPath();
-                        \error_log("Unable to read file {$file_path}");
+                        if ($file_extensions) {
+                            $file_path = $file_info->getRealPath();
+                            \error_log("Unable to read file {$file_path}");
+                        }
                         return false;
                     }
 
@@ -125,7 +143,7 @@ EOT;
         });
         foreach ($normalized_file_list as $file) {
             // @phan-suppress-next-line PhanPossiblyNullTypeArgument
-            self::checkFile($file, $checked_files);
+            self::checkFile($file, $plaintext, $checked_files);
         }
     }
 
@@ -139,7 +157,7 @@ EOT;
         \T_STRING                    => 'a token',
     ];
 
-    private static function checkFile(string $file, array &$checked_files)
+    private static function checkFile(string $file, bool $plaintext, array &$checked_files)
     {
         if (isset($checked_files[$file])) {
             return;
@@ -151,7 +169,7 @@ EOT;
             fwrite(STDERR, "Failed to read contents of '$file'" . PHP_EOL);
             return;
         }
-        foreach (TypoCheckUtils::getTyposForText($contents) as $typo) {
+        foreach (TypoCheckUtils::getTyposForText($contents, $plaintext) as $typo) {
             printf(
                 "%s:%d Saw a possible typo %s in %s (%s)%s",
                 $file,

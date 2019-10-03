@@ -79,7 +79,7 @@ class TypoCheckUtils
      * @return array<int,TypoDetails>
      * Maps line number to details about that typo
      */
-    public static function getTyposForText(string $contents) : array
+    public static function getTyposForText(string $contents, bool $plaintext = false) : array
     {
         $dictionary = self::getDictionary();
         $results = [];
@@ -144,7 +144,12 @@ class TypoCheckUtils
                 }
             }
         };
-        foreach (@token_get_all($contents) as $token) {
+        if ($plaintext) {
+            $tokens = [[T_INLINE_HTML, $contents, 1]];
+        } else {
+            $tokens = @token_get_all($contents);
+        }
+        foreach ($tokens as $token) {
             if (!is_array($token)) {
                 continue;
             }
