@@ -22,6 +22,9 @@ use const STDERR;
  */
 class TypoCheckScript
 {
+    /** @var int the number of errors that were printed */
+    private static $error_count = 0;
+
     private static function printUsage(string $message = null)
     {
         global $argv;
@@ -47,7 +50,7 @@ EOT;
         fwrite(STDERR, $help);
     }
 
-    public static function main()
+    public static function main() : int
     {
         global $argv;
         if (count($argv) <= 1) {
@@ -59,6 +62,7 @@ EOT;
         $checked_files = [];
         $args = array_slice($argv, 1);
         $plaintext = false;
+        self::$error_count = 0;
 
         foreach ($args as $i => $opt) {
             if (in_array($opt, ['-h', '--help', 'help'])) {
@@ -86,13 +90,13 @@ EOT;
                 fwrite(STDERR, "Failed to find file/folder '$file'" . PHP_EOL);
                 continue;
             }
-            echo "Checking $file " . json_encode($file_extensions) . "\n";
             if (is_file($file)) {
                 self::checkFile($file, $plaintext, $checked_files);
             } elseif (is_dir($file)) {
                 self::checkFolderRecursively($file, $file_extensions, $plaintext, $checked_files);
             }
         }
+        return self::$error_count;
     }
 
     private static function checkFolderRecursively(string $directory_name, array $file_extensions, bool $plaintext, array &$checked_files)
@@ -180,6 +184,7 @@ EOT;
                 TypoCheckUtils::makeSuggestionText($typo->suggestions, $typo->word),
                 PHP_EOL
             );
+            self::$error_count++;
         }
     }
 }

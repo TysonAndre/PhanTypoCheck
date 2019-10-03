@@ -1,4 +1,5 @@
 #!/usr/bin/env php
 <?php
 require_once __DIR__ . '/src/TypoCheckScript.php';
-PhanTypoCheck\TypoCheckScript::main();
+$error_count = PhanTypoCheck\TypoCheckScript::main();
+exit($error_count > 0 ? 1 : 0);
