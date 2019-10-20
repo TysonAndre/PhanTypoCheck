@@ -5,15 +5,17 @@ namespace PhanTypoCheck;
 require_once __DIR__ . '/TypoCheckUtils.php';
 
 use function count;
+use function fclose;
 use function file_exists;
-use function file_get_contents;
 use function fwrite;
+use function fopen;
 use function in_array;
 use function is_dir;
 use function is_file;
 use function is_string;
 use function json_encode;
 use function printf;
+use function stream_get_contents;
 use const PHP_EOL;
 use const STDERR;
 
@@ -168,10 +170,33 @@ EOT;
         }
         $checked_files[$file] = true;
 
-        $contents = file_get_contents($file);
-        if (!is_string($contents)) {
-            fwrite(STDERR, "Failed to read contents of '$file'" . PHP_EOL);
+        $fin = fopen($file, 'r');
+        if (!is_resource($fin)) {
+            fwrite(STDERR, "Failed to open file '$file'" . PHP_EOL);
             return;
+        }
+        // @phan-suppress-next-line PhanUndeclaredVariable https://github.com/phan/phan/issues/3403
+        $contents = '';
+        try {
+            $start = fread($fin, 1024);
+            if (!is_string($start)) {
+                fwrite(STDERR, "Failed to read contents of '$file'" . PHP_EOL);
+                return;
+            }
+            // Check for control characters, excluding tabs and newlines, and including DEL.
+            if (preg_match('/[\x00-\x09\x14-\x1f\x7f]/', $start)) {
+                fwrite(STDERR, "Skipping binary file '$file'" . PHP_EOL);
+                return;
+            }
+            $remaining_contents = stream_get_contents($fin);
+            if (!is_string($remaining_contents)) {
+                fwrite(STDERR, "Failed to read contents of '$file'" . PHP_EOL);
+                return;
+            }
+
+            $contents = $start . $remaining_contents;
+        } finally {
+            fclose($fin);
         }
         foreach (TypoCheckUtils::getTyposForText($contents, $plaintext) as $typo) {
             printf(
