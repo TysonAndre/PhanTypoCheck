@@ -27,6 +27,9 @@ class TypoCheckScript
     /** @var int the number of errors that were printed */
     private static $error_count = 0;
 
+    /** @var array<string,string> the set of known typos to ignore */
+    private static $ignore_typo_set = [];
+
     private static function printUsage(string $message = null)
     {
         global $argv;
@@ -47,6 +50,8 @@ Usage: {$argv[0]} [--help|-h|help] [--extensions=php,html] path/to/file.php path
     (Must be a single argument with '=')
     If the value is the empty string, then analyze all extensions.
 
+  --ignore-words=firstword,secondword
+    Ignore all words in this comma-separated list of words.
 EOT;
 
         fwrite(STDERR, $help);
@@ -61,6 +66,7 @@ EOT;
         }
         // TODO: make this configurable
         $file_extensions = ['php'];
+        $ignore_words = [];
         $checked_files = [];
         $args = array_slice($argv, 1);
         $plaintext = false;
@@ -81,11 +87,25 @@ EOT;
             }
             if (preg_match('/^--extensions=(.*)$/', $opt, $matches)) {
                 $file_extensions_string = $matches[1];
-                $file_extensions = $file_extensions_string !== '' ? explode(',', $file_extensions_string) : [];
+                $file_extensions = array_merge(
+                    $file_extensions,
+                    $file_extensions_string !== '' ? explode(',', $file_extensions_string) : []
+                );
                 unset($args[$i]);
                 continue;
             }
+            if (preg_match('/^--ignore-words=(.*)$/', $opt, $matches)) {
+                $ignore_words_string = strtolower($matches[1]);
+                $ignore_words = array_merge(
+                    $ignore_words,
+                    $ignore_words_string !== '' ? explode(',', $ignore_words_string) : []
+                );
+                unset($args[$i]);
+                continue;
+            }
+            fwrite(STDERR, "Unrecognized option '$opt'" . PHP_EOL);
         }
+        self::$ignore_typo_set = array_combine($ignore_words, $ignore_words);
 
         foreach ($args as $file) {
             if (!file_exists($file)) {
@@ -199,6 +219,9 @@ EOT;
             fclose($fin);
         }
         foreach (TypoCheckUtils::getTyposForText($contents, $plaintext) as $typo) {
+            if (array_key_exists(strtolower($typo->word), self::$ignore_typo_set)) {
+                continue;
+            }
             printf(
                 "%s:%d Saw a possible typo %s in %s (%s)%s",
                 $file,
