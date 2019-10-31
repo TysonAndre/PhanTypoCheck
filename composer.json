@@ -21,7 +21,7 @@
         "php": ">=7.1"
     },
     "require-dev": {
-        "phan/phan": "dev-master"
+        "phan/phan": "^2.4.0"
     },
     "bin": ["phptypocheck"]
 }
