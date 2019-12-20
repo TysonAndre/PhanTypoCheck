@@ -11,7 +11,7 @@ src/comments.php:5 PhanPluginPossibleTypoToken Saw an invalid word "iff" (Did yo
 src/html.php:3 PhanPluginPossibleTypoInlineHTML Saw an invalid word "Acutally" (Did you mean "Actually"?)
 src/html.php:7 PhanPluginPossibleTypoStringLiteral Saw an invalid word "Acutally" (Did you mean "Actually"?)
 src/ignored.php:6 PhanPluginPossibleTypoStringLiteral Saw an invalid word "optin" (Did you mean "option"?)
-src/invalid_constant_suggestion.php:6 PhanPluginPossibleTypoStringLiteral Saw an invalid word "DONT" (Did you mean "DON'T"?)
+src/invalid_constant_suggestion.php:6 PhanPluginPossibleTypoStringLiteral Saw an invalid word "DONT" (Did you mean "DON'T"? : not always fixable: disabled because of var names)
 src/invalid_constant_suggestion.php:8 PhanPluginPossibleTypoStringLiteral Saw an invalid word "Reenabled" (Did you mean "Re-enabled"?)
 src/multiline_typo.php:3 PhanPluginPossibleTypoGettext Call to gettext() was passed an invalid word "invlaid" in "\n\n\ninvlaid text" (Did you mean "invalid"?)
 src/multiline_typo.php:3 PhanPluginPossibleTypoStringLiteral Saw an invalid word "invlaid" (Did you mean "invalid"?)
