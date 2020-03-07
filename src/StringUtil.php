@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace PhanTypoCheck;
 
@@ -75,7 +77,7 @@ final class StringUtil
      *
      * @return string The parsed string
      */
-    public static function parse(string $str) : string
+    public static function parse(string $str): string
     {
         $c = $str[0];
         if ($c === '<') {
@@ -105,7 +107,7 @@ final class StringUtil
      * Converts a fragment of raw (possibly indented)
      * heredoc to the string that the PHP interpreter would treat it as.
      */
-    public static function parseHeredoc(string $str) : string
+    public static function parseHeredoc(string $str): string
     {
         // TODO: handle dos newlines
         // TODO: Parse escape sequences
@@ -137,7 +139,7 @@ final class StringUtil
      * @return string String with escape sequences parsed
      * @throws InvalidArgumentException for invalid code points
      */
-    public static function parseEscapeSequences($str, $quote) : string
+    public static function parseEscapeSequences($str, ?string $quote): string
     {
         if (!is_string($str)) {
             // Invalid AST input; give up
@@ -150,17 +152,16 @@ final class StringUtil
         return \preg_replace_callback(
             '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\})~',
             /**
-             * @param array<int,string> $matches
-             * @return string
+             * @param list<string> $matches
              */
-            static function ($matches) {
+            static function (array $matches): string {
                 $str = $matches[1];
 
                 if (isset(self::REPLACEMENTS[$str])) {
                     return self::REPLACEMENTS[$str];
                 } elseif ('x' === $str[0] || 'X' === $str[0]) {
-                    // @phan-suppress-next-line PhanPartialTypeMismatchArgumentInternal
-                    return chr(hexdec($str));
+                    // @phan-suppress-next-line PhanPartialTypeMismatchArgumentInternal, PhanPossiblyFalseTypeArgumentInternal
+                    return chr(hexdec(substr($str, 1)));
                 } elseif ('u' === $str[0]) {
                     // @phan-suppress-next-line PhanPartialTypeMismatchArgument
                     return self::codePointToUtf8(hexdec($matches[2]));
@@ -201,7 +202,7 @@ final class StringUtil
      * heredoc to the string that the PHP interpreter would treat it as.
      * (but convert escaped newlines to a character that isn't a literal newline)
      */
-    public static function parseHeredocWithNewlinePlaceholder(string $str) : string
+    public static function parseHeredocWithNewlinePlaceholder(string $str): string
     {
         // TODO: handle dos newlines
         // TODO: Parse escape sequences
@@ -253,8 +254,8 @@ final class StringUtil
                 if (isset(self::REPLACEMENTS[$str])) {
                     $result = self::REPLACEMENTS[$str];
                 } elseif ('x' === $str[0] || 'X' === $str[0]) {
-                    // @phan-suppress-next-line PhanPartialTypeMismatchArgumentInternal
-                    $result = chr(hexdec($str));
+                    // @phan-suppress-next-line PhanPartialTypeMismatchArgumentInternal, PhanPossiblyFalseTypeArgumentInternal
+                    $result = chr(hexdec(substr($str, 1)));
                 } elseif ('u' === $str[0]) {
                     // @phan-suppress-next-line PhanPartialTypeMismatchArgument
                     $result = self::codePointToUtf8(hexdec($matches[2]));
@@ -277,7 +278,7 @@ final class StringUtil
      *
      * @throws InvalidArgumentException for invalid code points
      */
-    private static function codePointToUtf8(int $num) : string
+    private static function codePointToUtf8(int $num): string
     {
         if ($num <= 0x7F) {
             return chr($num);
