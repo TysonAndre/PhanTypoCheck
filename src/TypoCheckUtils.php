@@ -79,6 +79,7 @@ class TypoCheckUtils
     /**
      * @param array{0:int,1:string,2:int} $token
      * @return Closure(int): int
+     * @suppress PhanUnreferencedClosure
      */
     private static function makeLineCounter(string $text, array $token): Closure
     {
