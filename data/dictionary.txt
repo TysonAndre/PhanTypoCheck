@@ -928,8 +928,13 @@ akkumulation->accumulation
 akkumulative->accumulative
 akkumulator->accumulator
 aks->ask
+aksed->asked
+akss->asks, ass,
 aktivate->activate
 aktivated->activated
+aktivates->activates
+aktivating->activating
+aktivation->activation
 akumulate->accumulate
 akumulated->accumulated
 akumulates->accumulates
@@ -1691,6 +1696,7 @@ aplha->alpha
 aplication->application
 aplications->applications
 aplied->applied
+aplitude->amplitude, aptitude,
 apllicatin->application
 apllication->application
 apllied->applied
@@ -2892,6 +2898,7 @@ backgorund->background
 backgound->background
 backgournd->background
 backgrond->background
+backgronds->backgrounds
 backgroud->background
 backgroung->background
 backgrount->background
@@ -3214,6 +3221,10 @@ blaim->blame
 blaimed->blamed
 blak->black, blank,
 blanace->balance
+blance->balance, glance, lance,
+blanced->balanced, glanced, lanced,
+blances->balances, glances, lances,
+blancing->balancing, glancing, lancing,
 blanck->blank, black,
 blancked->blanked
 blatent->blatant
@@ -3332,6 +3343,7 @@ boundares->boundaries
 boundaryi->boundary
 boundarys->boundaries
 bounday->boundary
+boundays->boundaries
 bounderies->boundaries
 boundery->boundary
 boundrary->boundary
@@ -3420,6 +3432,7 @@ brockened->broken
 brocolee->broccoli
 brodcast->broadcast
 broked->broken
+brokem->broken
 brokend->broken
 brokened->broken
 brokeness->brokenness
@@ -4641,6 +4654,7 @@ collegues->colleagues
 collektion->collection
 colletion->collection
 collison->collision, collusion,
+collisons->collisions, collusion, collusions,
 collission->collision, collusion,
 colllapses->collapses
 collocalized->colocalized
@@ -5287,6 +5301,7 @@ concatonated->concatenated
 concatonates->concatenates
 concatonating->concatenating
 conceed->concede
+conceedd->conceded
 concensors->consensus
 concensus->consensus
 concentate->concentrate
@@ -5506,6 +5521,11 @@ configuratuion->configuration
 configureable->configurable
 configureing->configuring
 configuretion->configuration
+configurres->configures
+configurring->configuring
+configurses->configures
+configurtation->configuration
+configurting->configuring
 configurtion->configuration
 configury->configurable
 configutation->configuration
@@ -5696,15 +5716,21 @@ consdidered->considered
 consdiered->considered
 consdired->considered
 conseat->conceit
+conseated->conceited
 consective->consecutive
+consectively->consecutively
 consectutive->consecutive
 consecuitively->consecutively
 conseed->concede
+conseedd->conceded
+conseeded->conceded
+conseeds->concedes
 consenquently->consequently
 consentrate->concentrate
 consentrated->concentrated
 consentrates->concentrates
 consept->concept
+consepts->concepts
 consequentely->consequently
 consequentially->consequently
 consequentually->consequently
@@ -5931,6 +5957,7 @@ contary->contrary
 contast->contrast, contest,
 contatenated->concatenated
 contating->contacting, containing,
+contect->contact, context, connect,
 contein->contain
 conteined->contained
 conteining->containing
@@ -6721,12 +6748,17 @@ curiousities->curiosities
 curiousity's->curiosity's
 curiousity->curiosity
 currect->correct, current,
-currectly->correctly
+currected->corrected
+currecting->correcting
+currectly->correctly, currently,
+currects->corrects, currents,
 curremt->current
+curremts->currents
 currenlty->currently
 currenly->currently
 currennt->current
 currenntly->currently
+currennts->currents
 currentl->currently
 currentlly->currently
 currentry->currently
@@ -7468,6 +7500,8 @@ dependendent->dependent
 dependenies->dependencies
 dependening->depending
 dependeny->dependency
+dependices->dependencies
+dependicy->dependency
 dependig->depending
 dependncies->dependencies
 dependncy->dependency
@@ -11749,10 +11783,17 @@ happaned->happened
 happend->happened, happens,
 happended->happened
 happenned->happened
+happenning->happening
+happennings->happenings
+happenns->happens
 happing->happening, happen,
 happne->happen
 happnes->happens, happiness,
 happpen->happen
+happpened->happened
+happpening->happening
+happpenings->happenings
+happpens->happens
 harased->harassed
 harases->harasses
 harasment->harassment
@@ -11905,7 +11946,8 @@ higeine->hygiene
 higer->higher
 higest->highest
 high-affort->high-effort
-highes->highest
+highe->high, higher, highs,
+highes->highest, highs,
 highjack->hijack
 highlighing->highlighting
 highlightning->highlighting
@@ -11975,6 +12017,7 @@ hitsingles->hit singles
 hiygeine->hygiene
 hnalder->handler
 hoeks->hoax
+hoever->however
 hokay->okay
 holf->hold
 holliday->holiday
@@ -12008,6 +12051,7 @@ hoppefully->hopefully
 hopyfully->hopefully
 horicontal->horizontal
 horicontally->horizontally
+horinzontal->horizontal
 horizntal->horizontal
 horizonal->horizontal
 horizontale->horizontal
@@ -12387,6 +12431,7 @@ impementling->implementing
 impementor->implementer
 impements->implements
 imperiaal->imperial
+imperitive->imperative
 impiled->implied
 implace->inplace
 implament->implement
@@ -13204,6 +13249,7 @@ inofficial->unofficial
 inofrmation->information
 inoquous->innocuous
 inot->into
+inout->input, in out,
 inouts->inputs
 inpact->impact
 inpacted->impacted
@@ -13236,6 +13282,7 @@ inpsection->inspection
 inpterpreter->interpreter
 inpu->input
 inpust->input, inputs,
+inputed->inputted
 inputsream->inputstream
 inpuut->input
 inreractive->interactive
@@ -13562,6 +13609,11 @@ interpeter->interpreter
 interpeters->interpreters
 interpeting->interpreting
 interpets->interprets
+interploate->interpolate
+interploated->interpolated
+interploates->interpolates
+interploatin->interpolating
+interploation->interpolation
 interpolaed->interpolated
 interpolaion->interpolation
 interpolaiton->interpolation
@@ -13931,6 +13983,8 @@ jelusey->jealousy
 jepordize->jeopardize
 jewl->Jew, jewel,
 jewllery->jewellery
+jitterr->jitter
+jitterring->jittering
 jodpers->jodhpurs
 Johanine->Johannine
 joineable->joinable
@@ -14217,6 +14271,9 @@ levl->level
 levle->level
 lexial->lexical
 leyer->layer
+leyered->layered
+leyering->layering
+leyers->layers
 liares->liars
 liasion->liaison
 liason->liaison
@@ -14584,6 +14641,7 @@ manifacturer->manufacturer
 manifacturers->manufacturers
 manifect->manifest
 manipluate->manipulate
+manipluated->manipulated
 manipulatin->manipulating
 manipulaton->manipulation
 manisfestations->manifestations
@@ -14618,6 +14676,7 @@ manualy->manually
 manualyl->manually
 manualyy->manually
 manuell->manual
+manuelly->manually
 manuever->maneuver, manoeuvre,
 manuevers->maneuvers, manoeuvres,
 manufacturedd->manufactured
@@ -14710,6 +14769,7 @@ materaials->materials
 materail->material
 materails->materials
 materalists->materialist
+materiasl->materials, material,
 materil->material
 materils->materials
 materla->material
@@ -16634,6 +16694,7 @@ othewice->otherwise
 othewise->otherwise
 othewize->otherwise
 otho->otoh
+othographic->orthographic
 othwerwise->otherwise
 othwhise->otherwise
 otification->notification
@@ -17680,6 +17741,7 @@ possiable->possible
 possibbe->possible
 possibe->possible
 possibile->possible
+possibilies->possibilities
 possibilites->possibilities
 possibilitities->possibilities
 possibillity->possibility
@@ -17754,6 +17816,7 @@ potrayed->portrayed
 poulations->populations
 pount->point
 pounts->points
+poupular->popular
 poverful->powerful
 poweful->powerful
 powerfull->powerful
@@ -19985,6 +20048,11 @@ rentors->renters
 reoccurrence->recurrence
 reocurring->reoccurring, recurring,
 reoder->reorder
+reomvable->removable
+reomve->remove
+reomved->removed
+reomves->removes
+reomving->removing
 reonly->read-only
 reopended->reopened
 reoport->report
@@ -20957,6 +21025,7 @@ seaching->searching
 seachkey->searchkey
 seacrchable->searchable
 searcahble->searchable
+searche->search, searched,
 searcheable->searchable
 searchin->searching
 searchs->searches
@@ -21026,6 +21095,10 @@ segemnts->segments
 segfualt->segfault
 segfualts->segfaults
 segmantation->segmentation
+segmend->segment
+segmendation->segmentation
+segmended->segmented
+segmends->segments
 segmenet->segment
 segmenetd->segmented
 segmeneted->segmented
@@ -21493,13 +21566,14 @@ similiarity->similarity
 similiarly->similarly
 similiarty->similarity
 similiary->similarity
+simily->simile, smiley, simply, similarly,
 simlar->similar
 simlarlity->similarity
 simlarly->similarly
 simliar->similar
 simlicity->simplicity
 simlified->simplified
-simly->simply
+simly->simply, simile, smiley,
 simmetric->symmetric
 simmetrical->symmetrical
 simmetry->symmetry
@@ -21598,7 +21672,15 @@ sitautions->situations
 sitck->stick
 siteu->site
 sitll->still
+situationals->situational, situations,
+situationly->situationally, situational,
+situationnal->situational
+situatuion->situation
+situatuions->situations
 situatution->situation
+situatutions->situations
+situbbornness->stubbornness
+situdio->studio
 siturations->situations
 situtation->situation
 situtations->situations
@@ -23253,6 +23335,9 @@ tendacy->tendency
 tendancies->tendencies
 tendancy->tendency
 tennisplayer->tennis player
+teplmate->template
+teplmated->templated
+teplmates->templates
 tepmorarily->temporarily
 teridactyl->pterodactyl
 terific->terrific
@@ -23712,6 +23797,8 @@ transaction-spacific->transaction-specific
 transactoin->transaction
 transaition->translation, transition, transaction,
 transaitions->translations, transitions, transactions,
+transalation->translation
+transalations->translations
 transalt->translate
 transalte->translate
 transalted->translated
@@ -23860,6 +23947,11 @@ transtition->transition
 transtitions->transitions
 transtorm->transform
 transtormed->transformed
+transvorm->transform
+transvormation->transformation
+transvormed->transformed
+transvorming->transforming
+transvorms->transforms
 tranversing->traversing
 trasaction->transaction
 trascation->transaction
@@ -24230,11 +24322,17 @@ underlow->underflow
 underrrun->underrun
 undersacn->underscan
 understadn->understand
+understadnable->understandable
 understadning->understanding
+understadns->understands
 understoon->understood
 understoud->understood
 undertable->understandable, understand,
 undertand->understand
+undertandable->understandable
+undertanded->understood
+undertanding->understanding
+undertands->understands
 undertsand->understand
 undertsanding->understanding
 undertsands->understands
@@ -24305,6 +24403,7 @@ unforgetable->unforgettable
 unforgiveable->unforgivable
 unformated->unformatted
 unforseen->unforeseen
+unforttunately->unfortunately
 unfortuante->unfortunate
 unfortuantely->unfortunately
 unfortunatelly->unfortunately
@@ -25590,6 +25689,7 @@ workbennches->workbenches
 workbnech->workbench
 workbneches->workbenches
 workboos->workbooks
+workd->worked
 workes->works
 workign->working
 workpsace->workspace
