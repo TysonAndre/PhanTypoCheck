@@ -2,6 +2,7 @@
 
 namespace PhanTypoCheck;
 
+use Closure;
 use InvalidArgumentException;
 use RuntimeException;
 use function array_map;
@@ -76,6 +77,22 @@ class TypoCheckUtils
     }
 
     /**
+     * @param array{0:int,1:string,2:int} $token
+     * @return Closure(int): int
+     * @suppress PhanUnreferencedClosure
+     */
+    private static function makeLineCounter(string $text, array $token): Closure
+    {
+        $line_counter = new LineCounter($text, $token);
+        return static function (int $offset) use($line_counter): int {
+            if ($offset <= 0) {
+                return 0;
+            }
+            return $line_counter->getLineNumberForOffset($offset);
+        };
+    }
+
+    /**
      * @return array<int,TypoDetails>
      * Maps line number to details about that typo
      */
@@ -85,17 +102,6 @@ class TypoCheckUtils
         $results = [];
 
         $analyze_text = static function (string $text, array $token) use ($dictionary, &$results) {
-            // @phan-suppress-next-line PhanUnusedVariableReference the reference is used to preserve state
-            $count_lines_before = static function (int $offset) use($text, $token) : int {
-                if ($offset <= 0) {
-                    return 0;
-                }
-                static $line_counter;
-                if ($line_counter === null) {
-                    $line_counter = new LineCounter($text, $token);
-                }
-                return $line_counter->getLineNumberForOffset($offset);
-            };
             preg_match_all('/[a-z0-9]{3,}(?:\'[a-z]+)?/i', $text, $matches, PREG_OFFSET_CAPTURE);
             foreach ($matches[0] as $match) {
                 list($word, $offset) = $match;
@@ -110,6 +116,9 @@ class TypoCheckUtils
                                 if ($suggestions === null) {
                                     continue;
                                 }
+                                if (!isset($count_lines_before)) {
+                                    $count_lines_before = self::makeLineCounter($text, $token);
+                                }
                                 $lineno = (int)($token[2]) + $count_lines_before($offset);
                                 $details = self::makeTypoDetails($inner_word, $token, $suggestions, $lineno);
                                 if ($details) {
@@ -121,6 +130,9 @@ class TypoCheckUtils
                     continue;
                 }
                 // Edge case in php 7.0: warns if length is 0
+                if (!isset($count_lines_before)) {
+                    $count_lines_before = self::makeLineCounter($text, $token);
+                }
                 $lineno = (int)($token[2]) + $count_lines_before($offset);
                 $results[] = new TypoDetails($word, $token, $lineno, $suggestions);
             }
