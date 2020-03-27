@@ -1,3 +1,4 @@
+src/camelMixed.php:2 PhanPluginPossibleTypoStringLiteral Saw an invalid word "Acutally" (Did you mean "Actually"?)
 src/casing.php:2 PhanPluginPossibleTypoStringLiteral Saw an invalid word "WONT" (Did you mean "WON'T" or "WONT"?)
 src/casing.php:3 PhanPluginPossibleTypoStringLiteral Saw an invalid word "Acutally" (Did you mean "Actually"?)
 src/comment.php:2 PhanPluginPossibleTypoComment Saw an invalid word "commnent" (Did you mean "comment"?)
