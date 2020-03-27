@@ -108,7 +108,7 @@ class TypoCheckUtils
                 $suggestions = $dictionary[strtolower($word)] ?? null;
                 if ($suggestions === null) {
                     // Analyze anything resembling camelCase, CamelCase, or snake_case
-                    if (preg_match('/(?:[a-z].*[A-Z]|_)/', $word)) {
+                    if (preg_match('/(?:[a-z][A-Z]|_)/', $word)) {
                         preg_match_all('/[a-z]+|[A-Z](?:[a-z]+|[A-Z]+(?![a-z]))/', $word, $matches);
                         if (count($matches[0]) >= 2) {
                             foreach ($matches[0] as $inner_word) {
