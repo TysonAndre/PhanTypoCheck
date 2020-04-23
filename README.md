@@ -49,7 +49,7 @@ The typo checks use [dictionary.txt](https://github.com/codespell-project/codesp
 
   However, that would not tell you what type of identifier the string occurred in (and allow filtering by that).
 
-  It also has issues analyzing the start/end of single quoted strings.
+  `codespell` also has issues analyzing the start/end of single quoted strings.
 
 Options
 -------
