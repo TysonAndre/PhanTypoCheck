@@ -2,6 +2,7 @@
 
 namespace PhanTypoCheck;
 
+require_once __DIR__ . '/Config.php';
 require_once __DIR__ . '/TypoCheckUtils.php';
 
 use function count;
@@ -52,6 +53,9 @@ Usage: {$argv[0]} [--help|-h|help] [--extensions=php,html] path/to/file.php path
 
   --ignore-words=firstword,secondword
     Ignore all words in this comma-separated list of words.
+
+  --with-context
+    Print the line where the typo occurred and N surrounding lines
 EOT;
 
         fwrite(STDERR, $help);
@@ -65,11 +69,10 @@ EOT;
             exit(1);
         }
         // TODO: make this configurable
-        $file_extensions = ['php'];
         $ignore_words = [];
         $checked_files = [];
         $args = array_slice($argv, 1);
-        $plaintext = false;
+        $config = new Config();
         self::$error_count = 0;
 
         foreach ($args as $i => $opt) {
@@ -80,15 +83,20 @@ EOT;
             if (($opt[0] ?? '') !== '-') {
                 continue;
             }
+            if (in_array($opt, ['--with-context'])) {
+                $config->with_context = true;
+                unset($args[$i]);
+                continue;
+            }
             if (in_array($opt, ['-p', '--plaintext'])) {
-                $plaintext = true;
+                $config->plaintext = true;
                 unset($args[$i]);
                 continue;
             }
             if (preg_match('/^--extensions=(.*)$/', $opt, $matches)) {
                 $file_extensions_string = $matches[1];
-                $file_extensions = array_merge(
-                    $file_extensions,
+                $config->file_extensions = array_merge(
+                    $config->file_extensions,
                     $file_extensions_string !== '' ? explode(',', $file_extensions_string) : []
                 );
                 unset($args[$i]);
@@ -113,15 +121,15 @@ EOT;
                 continue;
             }
             if (is_file($file)) {
-                self::checkFile($file, $plaintext, $checked_files);
+                self::checkFile($file, $config, $checked_files);
             } elseif (is_dir($file)) {
-                self::checkFolderRecursively($file, $file_extensions, $plaintext, $checked_files);
+                self::checkFolderRecursively($file, $config, $checked_files);
             }
         }
         return self::$error_count;
     }
 
-    private static function checkFolderRecursively(string $directory_name, array $file_extensions, bool $plaintext, array &$checked_files)
+    private static function checkFolderRecursively(string $directory_name, Config $config, array &$checked_files)
     {
         try {
             $iterator = new \CallbackFilterIterator(
@@ -131,13 +139,13 @@ EOT;
                         \RecursiveDirectoryIterator::FOLLOW_SYMLINKS
                     )
                 ),
-                static function (\SplFileInfo $file_info) use ($file_extensions) : bool {
-                    if ($file_extensions && !in_array($file_info->getExtension(), $file_extensions, true)) {
+                static function (\SplFileInfo $file_info) use ($config) : bool {
+                    if ($config->file_extensions && !in_array($file_info->getExtension(), $config->file_extensions, true)) {
                         return false;
                     }
 
                     if (!$file_info->isFile() || !$file_info->isReadable()) {
-                        if ($file_extensions) {
+                        if ($config->file_extensions) {
                             $file_path = $file_info->getRealPath();
                             \error_log("Unable to read file {$file_path}");
                         }
@@ -169,7 +177,7 @@ EOT;
         });
         foreach ($normalized_file_list as $file) {
             // @phan-suppress-next-line PhanPossiblyNullTypeArgument
-            self::checkFile($file, $plaintext, $checked_files);
+            self::checkFile($file, $config, $checked_files);
         }
     }
 
@@ -183,7 +191,7 @@ EOT;
         \T_STRING                    => 'a token',
     ];
 
-    private static function checkFile(string $file, bool $plaintext, array &$checked_files)
+    private static function checkFile(string $file, Config $config, array &$checked_files)
     {
         if (isset($checked_files[$file])) {
             return;
@@ -218,7 +226,8 @@ EOT;
         } finally {
             fclose($fin);
         }
-        foreach (TypoCheckUtils::getTyposForText($contents, $plaintext) as $typo) {
+        $lines = null;
+        foreach (TypoCheckUtils::getTyposForText($contents, $config->plaintext) as $typo) {
             if (array_key_exists(strtolower($typo->word), self::$ignore_typo_set)) {
                 continue;
             }
@@ -232,6 +241,12 @@ EOT;
                 TypoCheckUtils::makeSuggestionText($typo->suggestions, $typo->word),
                 PHP_EOL
             );
+            if ($config->with_context) {
+                if (!isset($lines)) {
+                    $lines = explode("\n", $contents);
+                }
+                printf("> %s\n", trim($lines[$typo->lineno - 1] ?? '', "\r"));
+            }
             self::$error_count++;
         }
     }
