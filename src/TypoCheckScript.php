@@ -56,6 +56,7 @@ Usage: {$argv[0]} [--help|-h|help] [--extensions=php,html] path/to/file.php path
 
   --with-context
     Print the line where the typo occurred and N surrounding lines
+
 EOT;
 
         fwrite(STDERR, $help);
