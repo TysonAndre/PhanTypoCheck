@@ -211,9 +211,9 @@ EOT;
                 fwrite(STDERR, "Failed to read contents of '$file'" . PHP_EOL);
                 return;
             }
-            // Check for control characters, excluding tabs and newlines, and including DEL.
-            if (preg_match('/[\x00-\x09\x14-\x1f\x7f]/', $start)) {
-                fwrite(STDERR, "Skipping binary file '$file'" . PHP_EOL);
+            // Check for control characters, excluding tabs(\x09) and newlines(\x0a), and including DEL.
+            if (preg_match('/[\x00-\x08\x14-\x1f\x7f]/', $start, $matches)) {
+                fprintf(STDERR, "Skipping binary file '%s' due to byte 0x%02x" . PHP_EOL, $file, ord($matches[0]));
                 return;
             }
             $remaining_contents = stream_get_contents($fin);
