@@ -14,14 +14,14 @@
     "config": {
         "sort-packages": true,
         "platform": {
-            "php": "7.1.24"
+            "php": "7.2.31"
         }
     },
     "require": {
         "php": ">=7.1"
     },
     "require-dev": {
-        "phan/phan": "^2.5.0"
+        "phan/phan": "^2.5.0 || ^3.0.0 || ^4.0.0"
     },
     "bin": ["phptypocheck"]
 }
